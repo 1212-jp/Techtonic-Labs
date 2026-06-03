@@ -21,3 +21,5 @@ footer{background:#111;padding:20px;text-align:center}
 .menu-btn{padding:8px 12px}
 @media(max-width:768px){.mobile-nav{display:none;width:100%}.mobile-nav.show{display:block}.mobile-nav a{display:block}}
 a:focus,button:focus{outline:3px solid #00d4ff}
+
+img{max-width:100%;height:auto;} footer{padding:10px;} nav a{margin-right:10px;} 
