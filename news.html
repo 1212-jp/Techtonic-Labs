@@ -1,0 +1,40 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>News - Techtonic Labs</title><link rel='stylesheet' href='css/style.css'></head><body>
+<div class='access'>
+<button onclick='changeFont(-1)'>Decrease font</button>
+<button onclick='changeFont(0)'>reset</button>
+<button onclick='changeFont(1)'>Increase font</button>
+<button onclick='toggleTheme()'>Dark/Light</button></div>
+<header><div class='logo'><img src='images/logo.png' alt='Techtonic Labs Logo'><h1>Techtonic Labs</h1></div>
+<nav id='main-nav' class='mobile-nav'><a href='index.html'>Home</a><a href='news.html'>News</a><a href='contact.html'>Contact</a></nav></header>
+<section><h2>Latest News</h2>
+<label for='cat'>Select Category:</label>
+<select id='cat'>
+<option value='general'>Top Headlines</option>
+<option value='world'>World</option>
+<option value='nation'>India</option>
+<option value='business'>Business</option>
+<option value='technology'>Technology</option>
+<option value='sports'>Sports</option>
+<option value='health'>Health</option>
+<option value='science'>Science</option>
+<option value='entertainment'>Entertainment</option>
+</select>
+<div id='news'>Choose a category to load news.</div></section>
+<script>
+const API_KEY='pub_8625c23a269149b58b48e0027123c412';
+async function loadNews(){
+ const c=document.getElementById('cat').value;
+ const box=document.getElementById('news');
+ box.innerHTML='Loading news...';
+ try{
+ const r=await fetch(`https://newsdata.io/api/1/news?apikey=${API_KEY}&language=en&category=${c}`);
+ const d=await r.json();
+ if(d.status && d.status!=='success'){box.innerHTML='News service error';return;}
+ let h='';
+ (d.results||[]).slice(0,10).forEach(a=>h+=`<div class='card'><h3>${a.title||''}</h3><p>${a.description||''}</p><a href='${a.link||'#'}' target='_blank'>Read Full Article</a></div>`);
+ box.innerHTML=h||'No news available.';
+ }catch(e){console.error(e);box.innerHTML='Unable to load news. Please try again later.';}
+}
+document.getElementById('cat').addEventListener('change',loadNews);
+window.addEventListener('load', loadNews);
+</script><script src='js/script.js'></script><div id='live-region' aria-live='polite'></div></body></html>
