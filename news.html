@@ -22,31 +22,54 @@
 <option value='hi'>Hindi</option>
 </select>
 <div id='news'>Choose a category to load news.</div></section>
+
 <script>
-const API_KEY='pub_8625c23a269149b58b48e0027123c412';
+const API_URL='https://backand-782w.onrender.com/news';
+
+async function translateText(text,target){
+ if(!text || target==='en') return text||'';
+ try{
+   const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=hi&dt=t&q='+encodeURIComponent(text));
+   const d=await r.json();
+   return (d && d[0]) ? d[0].map(part => part[0]).join('') : text;
+ }catch(e){ return text; }
+}
+
 async function loadNews(){
  const c=document.getElementById('cat').value;
  const lang=document.getElementById('lang').value;
  const box=document.getElementById('news');
  box.innerHTML='Loading news...';
+
  try{
- const r=await fetch(`https://newsdata.io/api/1/news?apikey=${API_KEY}&language=${lang}&category=${c}`);
- const d=await r.json();
- let h='';
- (d.results||[]).slice(0,10).forEach(a=>{
- h+=`<div class='card'><h3>${a.title||''}</h3><p>${a.description||''}</p><a href='${a.link||'#'}' target='_blank'>Read Full Article</a></div>`;
- });
- box.innerHTML=h||'No news available.';
- const live=document.getElementById('live-region');
- if(live) live.textContent=(d.results||[]).length+' news articles loaded';
+   const r=await fetch(API_URL);
+   const d=await r.json();
+
+   let items=(d.results||[]).filter(n=>!c || (n.category||[]).includes(c)).slice(0,10);
+
+   let h='';
+   for(const a of items){
+      const title=await translateText(a.title||'',lang);
+      const desc=await translateText(a.description||'',lang);
+
+      h+=`<div class='card'>
+      <h3>${title}</h3>
+      <p>${desc}</p>
+      <a href='${a.link||"#"}' target='_blank'>Read Full Article</a>
+      </div>`;
+   }
+
+   box.innerHTML=h || 'No news available.';
  }catch(e){
- console.error(e);
- box.innerHTML='Unable to load news.';
+   console.error(e);
+   box.innerHTML='Unable to load news.';
  }
 }
+
 document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('cat').addEventListener('change',loadNews);
  document.getElementById('lang').addEventListener('change',loadNews);
  loadNews();
 });
+</script>
 </script><script src='js/script.js'></script><div id='live-region' aria-live='polite'></div><footer><a href="privacy.html">Privacy Policy</a></footer></body></html>
