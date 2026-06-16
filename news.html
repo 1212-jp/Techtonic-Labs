@@ -1,75 +1,181 @@
-<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>News - Techtonic Labs</title><link rel='stylesheet' href='css/style.css'></head><body><div role="status" aria-live="polite">This website is under working.</div>
-<div class='access'>
-<button onclick='changeFont(-1)'>Decrease font</button>
-<button onclick='changeFont(0)'>reset</button>
-<button onclick='changeFont(1)'>Increase font</button>
-<button onclick='toggleTheme()'>Dark/Light</button></div>
-<header><div class='logo'><img src='images/logo.png' alt='Techtonic Labs Logo'><h1>Techtonic Labs</h1></div>
-<nav id='main-nav' class='mobile-nav'><a href='index.html'>Home</a><a href='news.html'>News</a><a href='contact.html'>Contact</a></nav></header>
-<section><h2>Latest News</h2>
-<label for='cat'>Category:</label>
-<select id='cat'>
-<option value='technology'>Technology</option>
-<option value='business'>Business</option>
-<option value='sports'>Sports</option>
-<option value='health'>Health</option>
-<option value='science'>Science</option>
-<option value='entertainment'>Entertainment</option>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>News - Techtonic Labs</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    margin:0;
+    background:#f4f4f4;
+}
+header{
+    background:#222;
+    color:white;
+    padding:15px;
+}
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.logo img{
+    width:50px;
+}
+nav a{
+    color:white;
+    margin-right:15px;
+    text-decoration:none;
+}
+section{
+    padding:20px;
+}
+.card{
+    background:white;
+    padding:20px;
+    margin:15px 0;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+select{
+    padding:10px;
+    margin:10px;
+}
+a{
+    color:blue;
+}
+</style>
+</head>
+
+<body>
+
+<div role="status" aria-live="polite">
+This website is under working.
+</div>
+
+<header>
+<div class="logo">
+<img src="images/logo.png" alt="Techtonic Labs Logo">
+<h1>Techtonic Labs</h1>
+</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="news.html">News</a>
+<a href="contact.html">Contact</a>
+</nav>
+</header>
+
+<section>
+<h2>Latest News</h2>
+
+<label for="cat">Category:</label>
+<select id="cat">
+<option value="technology">Technology</option>
+<option value="business">Business</option>
+<option value="sports">Sports</option>
+<option value="health">Health</option>
+<option value="science">Science</option>
+<option value="entertainment">Entertainment</option>
 </select>
-<label for='lang'>Language:</label>
-<select id='lang'>
-<option value='en'>English</option>
-<option value='hi'>Hindi</option>
+
+<label for="lang">Language:</label>
+<select id="lang">
+<option value="en">English</option>
+<option value="hi">Hindi</option>
 </select>
-<div id='news'>Choose a category to load news.</div></section>
+
+<div id="news">Choose a category to load news.</div>
+</section>
 
 <script>
 const API_URL='https://backand-782w.onrender.com/news';
 
 async function translateText(text,target){
- if(!text || target==='en') return text||'';
- try{
-   const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=hi&dt=t&q='+encodeURIComponent(text));
-   const d=await r.json();
-   return (d && d[0]) ? d[0].map(part => part[0]).join('') : text;
- }catch(e){ return text; }
+    if(!text || target==='en') return text;
+
+    try{
+        const url=
+        'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
+        + target +
+        '&dt=t&q=' +
+        encodeURIComponent(text);
+
+        const response=await fetch(url);
+        const data=await response.json();
+
+        if(data && data[0]){
+            return data[0].map(item=>item[0]).join('');
+        }
+
+        return text;
+    }catch(error){
+        console.log("Translation failed:", error);
+        return text;
+    }
 }
 
 async function loadNews(){
- const c=document.getElementById('cat').value;
- const lang=document.getElementById('lang').value;
- const box=document.getElementById('news');
- box.innerHTML='Loading news...';
+    const category=document.getElementById('cat').value;
+    const lang=document.getElementById('lang').value;
+    const box=document.getElementById('news');
 
- try{
-   const r=await fetch(API_URL);
-   const d=await r.json();
+    box.innerHTML='Loading news...';
 
-   let items=(d.results||[]).filter(n=>!c || (n.category||[]).includes(c)).slice(0,10);
+    try{
+        const response=await fetch(API_URL);
+        const data=await response.json();
 
-   let h='';
-   for(const a of items){
-      const title=await translateText(a.title||'',lang);
-      const desc=await translateText(a.description||'',lang);
+        let items=(data.results || [])
+            .filter(news =>
+                !category ||
+                (news.category || []).includes(category)
+            )
+            .slice(0,10);
 
-      h+=`<div class='card'>
-      <h3>${title}</h3>
-      <p>${desc}</p>
-      <a href='${a.link||"#"}' target='_blank'>Read Full Article</a>
-      </div>`;
-   }
+        let html='';
 
-   box.innerHTML=h || 'No news available.';
- }catch(e){
-   console.error(e);
-   box.innerHTML='Unable to load news.';
- }
+        for(let article of items){
+
+            let title=article.title || '';
+            let desc=article.description || '';
+
+            if(lang==='hi'){
+                title=await translateText(title,'hi');
+                desc=await translateText(desc,'hi');
+            }
+
+            html += `
+            <div class="card">
+                <h3>${title}</h3>
+                <p>${desc}</p>
+                <a href="${article.link || '#'}" target="_blank">
+                    ${lang==='hi' ? 'पूरा समाचार पढ़ें' : 'Read Full Article'}
+                </a>
+            </div>
+            `;
+        }
+
+        box.innerHTML=html || 'No news available.';
+    }
+    catch(error){
+        console.error(error);
+        box.innerHTML='Unable to load news.';
+    }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
- document.getElementById('cat').addEventListener('change',loadNews);
- document.getElementById('lang').addEventListener('change',loadNews);
- loadNews();
+    document.getElementById('cat').addEventListener('change',loadNews);
+    document.getElementById('lang').addEventListener('change',loadNews);
+    loadNews();
 });
 </script>
-</script><script src='js/script.js'></script><div id='live-region' aria-live='polite'></div><footer><a href="privacy.html">Privacy Policy</a></footer></body></html>
+
+<footer style="padding:20px;">
+<a href="privacy.html">Privacy Policy</a>
+</footer>
+
+</body>
+</html>
