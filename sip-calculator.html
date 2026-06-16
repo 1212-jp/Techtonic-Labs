@@ -3,155 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIP Calculator - Techtonic Labs</title>
-<link rel="stylesheet" href="css/style.css">
+<title>SIP Calculator</title>
 
 <style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f0f2f5;
+}
+
 .container{
-max-width:800px;
-margin:auto;
-padding:20px;
+    max-width:800px;
+    margin:auto;
+    padding:20px;
 }
 
 .card{
-background:#fff;
-padding:20px;
-border-radius:10px;
-box-shadow:0 2px 10px rgba(0,0,0,.1);
-margin-bottom:20px;
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+    margin-bottom:20px;
 }
 
 input{
-width:100%;
-padding:12px;
-margin:10px 0;
-font-size:16px;
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    font-size:16px;
+    box-sizing:border-box;
 }
 
 button{
-padding:12px 20px;
-font-size:16px;
-cursor:pointer;
-margin:5px;
+    padding:12px 20px;
+    font-size:16px;
+    cursor:pointer;
+    margin:5px;
+    border:none;
+    border-radius:6px;
+    background:#007bff;
+    color:white;
 }
 
 button:disabled{
-opacity:.5;
-cursor:not-allowed;
+    opacity:.5;
+    cursor:not-allowed;
 }
 
 #result{
-margin-top:20px;
-padding:15px;
-border-radius:8px;
-background:#f5f5f5;
+    margin-top:20px;
+    padding:15px;
+    border-radius:8px;
+    background:#f5f5f5;
+    filter:none !important;
+    backdrop-filter:none !important;
+    opacity:1 !important;
+    color:#000;
+    font-weight:500;
 }
 
 ul{
-line-height:1.8;
+    line-height:1.8;
 }
 </style>
-
 </head>
 <body>
 
 <div class="container">
 
 <section id="intro" class="card">
-
 <h1>📈 SIP Calculator</h1>
+<p>SIP calculator helps estimate future value of monthly investments.</p>
 
-<p>
-A Systematic Investment Plan (SIP) Calculator helps investors estimate
-the future value of their investments through regular monthly contributions.
-This tool provides projected returns based on your investment amount,
-expected annual return, and investment duration.
-</p>
-
-<h2>Why Use This Tool?</h2>
-
-<ul>
-<li>Plan long-term investments effectively.</li>
-<li>Estimate potential wealth creation.</li>
-<li>Compare different investment scenarios.</li>
-<li>Support financial goal planning.</li>
-</ul>
-
-<h2>Key Features</h2>
-
-<ul>
-<li>Instant SIP calculations.</li>
-<li>Detailed investment breakdown.</li>
-<li>Accessible screen-reader support.</li>
-<li>Export results as PDF.</li>
-<li>Automatic value saving.</li>
-</ul>
-
-<p>
-Disclaimer: Results are estimates only and should not be considered
-financial advice.
-</p>
-
-<button id="startBtn">
-Start SIP Calculator
-</button>
-
+<button id="startBtn">Start SIP Calculator</button>
 </section>
 
-<section
-id="tool"
-class="card"
-style="display:none;"
->
-
+<section id="tool" class="card" style="display:none;">
 <h2>SIP Calculator</h2>
 
-<input
-id="m"
-type="number"
-min="1"
-placeholder="Monthly Investment (₹)"
-aria-label="Monthly Investment">
+<input id="m" type="number" min="1" placeholder="Monthly Investment (₹)">
+<input id="r" type="number" min="0" step="0.1" placeholder="Expected Annual Return (%)">
+<input id="y" type="number" min="1" placeholder="Investment Duration (Years)">
 
-<input
-id="r"
-type="number"
-min="0.1"
-step="0.1"
-placeholder="Expected Annual Return (%)"
-aria-label="Expected Annual Return">
-
-<input
-id="y"
-type="number"
-min="1"
-placeholder="Investment Duration (Years)"
-aria-label="Investment Duration">
-
-<button
-id="calcBtn"
-disabled>
-Calculate SIP
-</button>
-
-<button onclick="window.print()">
-Export Results as PDF
-</button>
+<button id="calcBtn" disabled>Calculate SIP</button>
+<button id="pdfBtn">Download PDF</button>
 
 <div id="result"></div>
-
-<div
-id="live"
-aria-live="polite"
-style="position:absolute;left:-9999px;">
-</div>
-
 </section>
 
 </div>
 
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+<script>
 const startBtn=document.getElementById("startBtn");
 const tool=document.getElementById("tool");
 const intro=document.getElementById("intro");
@@ -162,143 +106,83 @@ const y=document.getElementById("y");
 
 const calcBtn=document.getElementById("calcBtn");
 const result=document.getElementById("result");
-const live=document.getElementById("live");
+const pdfBtn=document.getElementById("pdfBtn");
 
 startBtn.addEventListener("click",()=>{
-
-intro.style.display="none";
-tool.style.display="block";
-
+    intro.style.display="none";
+    tool.style.display="block";
 });
 
 function validateForm(){
+    const valid=
+        m.value!=="" &&
+        r.value!=="" &&
+        y.value!=="" &&
+        Number(m.value)>0 &&
+        Number(r.value)>=0 &&
+        Number(y.value)>0;
 
-const valid=
-
-m.value.trim()!=="" &&
-r.value.trim()!=="" &&
-y.value.trim()!=="" &&
-
-Number(m.value)>0 &&
-Number(r.value)>0 &&
-Number(y.value)>0;
-
-calcBtn.disabled=!valid;
-
+    calcBtn.disabled=!valid;
 }
 
 [m,r,y].forEach(field=>{
-
-field.addEventListener(
-"input",
-validateForm
-);
-
+    field.addEventListener("input",validateForm);
 });
 
 function calculate(){
+    let P=Number(m.value);
+    let R=Number(r.value)/1200;
+    let n=Number(y.value)*12;
 
-if(calcBtn.disabled){
+    let fv;
 
-live.textContent=
-"Please complete all fields before calculating.";
+    if(R===0){
+        fv=P*n;
+    }else{
+        fv=P*(((Math.pow(1+R,n)-1)/R)*(1+R));
+    }
 
-return;
+    let invested=P*n;
+    let returns=fv-invested;
 
+    result.innerHTML=`
+    <h2>Investment Results</h2>
+    <p><strong>Monthly Investment:</strong> ₹${P.toLocaleString()}</p>
+    <p><strong>Expected Return:</strong> ${r.value}%</p>
+    <p><strong>Investment Duration:</strong> ${y.value} Years</p>
+    <hr>
+    <p><strong>Total Invested:</strong> ₹${invested.toFixed(2)}</p>
+    <p><strong>Estimated Returns:</strong> ₹${returns.toFixed(2)}</p>
+    <p><strong>Maturity Value:</strong> ₹${fv.toFixed(2)}</p>
+    `;
 }
 
-let P=Number(m.value);
+calcBtn.addEventListener("click",calculate);
 
-let R=
-Number(r.value)/1200;
+pdfBtn.addEventListener("click",()=>{
+    if(result.innerHTML===""){
+        alert("पहले calculation करें");
+        return;
+    }
 
-let n=
-Number(y.value)*12;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-let fv=
-P*
-((Math.pow(1+R,n)-1)/R)*
-(1+R);
+    doc.setFontSize(18);
+    doc.text("SIP Calculator Result", 20, 20);
 
-let invested=
-P*n;
+    let lines=result.innerText.split("\n");
+    let yPos=40;
 
-let returns=
-fv-invested;
+    lines.forEach(line=>{
+        if(line.trim()!==""){
+            doc.text(line.trim(),20,yPos);
+            yPos+=10;
+        }
+    });
 
-localStorage.setItem(
-"sip",
-JSON.stringify({
-m:m.value,
-r:r.value,
-y:y.value
-})
-);
-
-result.innerHTML=`
-
-<h2>Investment Results</h2>
-
-<p>
-<strong>Monthly Investment:</strong>
-₹${P.toLocaleString()}
-</p>
-
-<p>
-<strong>Expected Return:</strong>
-${r.value}%
-</p>
-
-<p>
-<strong>Investment Duration:</strong>
-${y.value} Years
-</p>
-
-<hr>
-
-<p>
-<strong>Total Invested Amount:</strong>
-₹${invested.toFixed(2)}
-</p>
-
-<p>
-<strong>Estimated Returns:</strong>
-₹${returns.toFixed(2)}
-</p>
-
-<p>
-<strong>Maturity Value:</strong>
-₹${fv.toFixed(2)}
-</p>
-
-`;
-
-live.textContent=
-"SIP calculation completed successfully. Results are now available.";
-
-}
-
-calcBtn.addEventListener(
-"click",
-calculate
-);
-
-window.onload=()=>{
-
-let data=
-JSON.parse(
-localStorage.getItem("sip")
-|| "{}"
-);
-
-m.value=data.m || "";
-r.value=data.r || "";
-y.value=data.y || "";
-
-validateForm();
-
-};
-
+    doc.save("sip-result.pdf");
+});
 </script>
 
 </body>
