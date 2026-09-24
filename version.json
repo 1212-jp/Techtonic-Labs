@@ -1,6 +1,6 @@
-{
-    "version": "1.0.0",
-    "download_url": "https://github.com/1212-jp/Techtonic-Labs/releases/download/v1.0.0/Labs-Vault-Setup.exe",
+            {
+    "version": "1.0",
+    "download_url": "https://github.com/1212-jp/Techtonic-Labs/releases/download/v1.1/Labs-Vault-Setup.exe",
     "release_notes": "Initial release of Labs-Vault.",
     "mandatory": false
-}
+}                
